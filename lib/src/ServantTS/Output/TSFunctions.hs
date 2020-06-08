@@ -1,10 +1,12 @@
 module ServantTS.Output.TSFunctions where
 
 import           Control.Lens
+import           Data.Maybe (mapMaybe, maybeToList, fromMaybe)
 import           Data.Monoid     ((<>))
 import           Data.Proxy
 import           Data.Text       (Text)
 import qualified Data.Text       as T
+import qualified Data.Text.Encoding as E
 import Data.Text.Prettyprint.Doc
 import           Servant.Foreign
 import           Servant.Foreign.Inflections (camelCase)
@@ -60,13 +62,19 @@ printTSTypedVar (TSTypedVar name' type') = name' <> " : " <> type'
 reqToTSFunctionArgs  :: (IsForeignType (TSIntermediate flavor))
   => Req (TSIntermediate flavor)
   -> [TSArg]
-reqToTSFunctionArgs r = reqToTSFunctionArgsCapture r
+reqToTSFunctionArgs r = reqToTSFunctionArgsCapture r <> reqToTSFunctionArgsBody r
 
 reqToTSFunctionArgsCapture  :: (IsForeignType (TSIntermediate flavor))
   => Req (TSIntermediate flavor)
   -> [TSArg]
 reqToTSFunctionArgsCapture req =
   map (reqArgToTSArg . captureArg) . filter isCapture $ req ^. reqUrl . path
+
+reqToTSFunctionArgsBody  :: (IsForeignType (TSIntermediate flavor))
+  => Req (TSIntermediate flavor)
+  -> [TSArg]
+reqToTSFunctionArgsBody req =
+  maybeToList $ fmap (reqFToTSArg "body") $ req ^. reqBody
 
 getReqUrl
   :: (IsForeignType (TSIntermediate flavor))
@@ -82,7 +90,6 @@ getReqUrl req = T.intercalate "/" (fmap handleSegment $ req ^. reqUrl . path)
     Static (PathSegment ps) -> ps
     Cap arg -> "${" <> (varName . getTypedVar . reqArgToTSArg) arg <> "}"
 
-
 reqArgToTSArg
   :: (IsForeignType (TSIntermediate flavor))
   => Arg (TSIntermediate flavor)
@@ -91,6 +98,17 @@ reqArgToTSArg (Arg argName' argType') = TSArg $ TSTypedVar
   { varName = unPathSegment argName'
   , varType = refName . toForeignType $ argType'
   }
+
+reqFToTSArg
+  :: (IsForeignType (TSIntermediate flavor))
+  => Text
+  -> TSIntermediate flavor
+  -> TSArg
+reqFToTSArg name argType = TSArg $ TSTypedVar
+  { varName = name
+  , varType = refName . toForeignType $ argType
+  }
+
 
 reqToTSFunctionName
   :: (IsForeignType (TSIntermediate flavor))
@@ -115,6 +133,10 @@ mkDefaultBody req _ tsBaseUrlFunc = TSFunctionBody
     <> printTSReqMethod @trm
     <> "("
     <> (tsBaseUrlFunc $ getReqUrl req)
+    <> ", {\n"
+    <>  " method: " <> (E.decodeUtf8 $ _reqMethod req) <> ",\n"
+    <> (fromMaybe "" $ fmap (const "body: JSON.stringify(body)") $ (_reqBody req))
+    <> "\n}"
     <> ")"
   ]
 
