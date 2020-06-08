@@ -38,8 +38,8 @@ main = do
   asTS         = servantToReqTS (Proxy :: Proxy FpTs) (Proxy :: Proxy SimpleAPI)
   reqToTSFunction = defaultReqToTSFunction (Proxy @Fetch)
   config = Example
-       {decFile = T.pack $ show (apiToTypeDeclarationDoc asTS)
-       ,funcFile = T.pack $ show (apiToFunctionDoc asTS reqToTSFunction)
+       { decFile = T.pack $ show (apiToTypeDeclarationDoc asTS)
+       , funcFile = T.pack $ show (apiToFunctionDoc asTS reqToTSFunction)
        }
 
 
