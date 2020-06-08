@@ -57,11 +57,15 @@ printArgs tsArgs' =
 printTSTypedVar :: TSTypedVar -> Text
 printTSTypedVar (TSTypedVar name' type') = name' <> " : " <> type'
 
-reqToTSFunctionArgs
-  :: (IsForeignType (TSIntermediate flavor))
+reqToTSFunctionArgs  :: (IsForeignType (TSIntermediate flavor))
   => Req (TSIntermediate flavor)
   -> [TSArg]
-reqToTSFunctionArgs req =
+reqToTSFunctionArgs r = reqToTSFunctionArgsCapture r
+
+reqToTSFunctionArgsCapture  :: (IsForeignType (TSIntermediate flavor))
+  => Req (TSIntermediate flavor)
+  -> [TSArg]
+reqToTSFunctionArgsCapture req =
   map (reqArgToTSArg . captureArg) . filter isCapture $ req ^. reqUrl . path
 
 getReqUrl
