@@ -1,6 +1,6 @@
 module ServantTS.Output.Docs where
 
-import           Data.Maybe                   ( fromMaybe )
+import           Data.Maybe                   ( mapMaybe, fromMaybe )
 import           Data.Proxy
 import           Data.Text
 
@@ -55,4 +55,4 @@ apiToTypeDeclarationDoc :: IsForeignType t
                         => [Req t]
                         -> Doc ann
 apiToTypeDeclarationDoc asTS = vsep $
-    fmap (pretty . declaration . toForeignType) (allTypes asTS)
+    mapMaybe (fmap pretty . declaration . toForeignType) (allTypes asTS)
