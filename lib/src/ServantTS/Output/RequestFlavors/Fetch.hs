@@ -12,7 +12,7 @@ data Fetch
 
 instance TSRequestMethod Fetch where
   type HasReturnType Fetch = Promise
-  printTSReqMethod = "fetch"
+  printTSReqMethod = "axios"
 
 
 

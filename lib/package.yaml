@@ -17,6 +17,7 @@ dependencies:
   - text
   - lens
   - prettyprinter
+  - bytestring
 
 executables:
   servant-ts-mk-docs:

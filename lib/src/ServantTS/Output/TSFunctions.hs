@@ -4,6 +4,7 @@ import           Control.Lens
 import           Data.Maybe (mapMaybe, maybeToList, fromMaybe)
 import           Data.Monoid     ((<>))
 import           Data.Proxy
+import qualified Data.ByteString as B
 import           Data.Text       (Text)
 import qualified Data.Text       as T
 import qualified Data.Text.Encoding as E
@@ -121,6 +122,20 @@ withDefaultUrlFunc t = "withRemoteBaseUrl(`" <> t <> "`)"
 
 type TSBaseUrlMethod = Text -> Text
 
+reqMethodToAxios :: B.ByteString -> Text
+reqMethodToAxios methodGet = "'get'"
+reqMethodToAxios methodPost = "'post'"
+reqMethodToAxios methodHead = "'patch'"
+reqMethodToAxios methodGet = "'get'"
+reqMethodToAxios methodPost = "'post'"
+reqMethodToAxios methodHead = "'head'"
+reqMethodToAxios methodPut = "'put'"
+reqMethodToAxios methodDelete = "'delete'"
+reqMethodToAxios methodTrace = "'trace'"
+reqMethodToAxios methodConnect = "'connect'"
+reqMethodToAxios methodOptions = "'options'"
+reqMethodToAxios methodPatch = "'patch'"
+
 mkDefaultBody
   :: forall flavor trm
    . (IsForeignType (TSIntermediate flavor), TSRequestMethod trm)
@@ -131,13 +146,11 @@ mkDefaultBody
 mkDefaultBody req _ tsBaseUrlFunc = TSFunctionBody
   [ "return "
     <> printTSReqMethod @trm
-    <> "("
-    <> (tsBaseUrlFunc $ getReqUrl req)
-    <> ", {\n"
-    <>  " method: " <> (E.decodeUtf8 $ _reqMethod req) <> ",\n"
-    <> (fromMaybe "" $ fmap (const "body: JSON.stringify(body)") $ (_reqBody req))
-    <> "\n}"
-    <> ")"
+    <> "({"
+    <> "  url:  " <>  (tsBaseUrlFunc $ getReqUrl req) <> ",\n"
+    <>  " method: " <> (reqMethodToAxios $ _reqMethod req) <> ",\n"
+    <> (fromMaybe "" $ fmap (const "data: body,\n") $ (_reqBody req))
+    <> "})"
   ]
 
 getTSReqMethodReturnType

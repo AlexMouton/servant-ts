@@ -33,6 +33,7 @@ library
   build-depends:
       aeson-generic-ts
     , base >=4.7 && <5
+    , bytestring
     , lens
     , prettyprinter
     , servant
@@ -59,6 +60,7 @@ executable servant-ts-mk-docs
   build-depends:
       aeson-generic-ts
     , base >=4.7 && <5
+    , bytestring
     , dhall
     , lens
     , prettyprinter
@@ -88,6 +90,7 @@ test-suite servant-ts-test
   build-depends:
       aeson-generic-ts
     , base >=4.7 && <5
+    , bytestring
     , hspec
     , lens
     , prettyprinter
